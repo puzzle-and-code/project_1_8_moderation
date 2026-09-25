@@ -1,0 +1,36 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --teal: #00e5b4;
+  --teal2: #00b4d8;
+  --purple: #7c3aed;
+  --bg: #0f0c1a;
+  --card: rgba(15, 12, 26, 0.88);
+  --text: #ccd6f6;
+  --muted: #8892b0;
+  --faint: #4a5568;
+  --border: rgba(0, 229, 180, 0.18);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;    
+  background: linear-gradient(135deg, #0f0c1a 0%, #1a1030 45%, #0d1f2d 100%);
+  font-family: "Raleway", sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+  padding: 0;
+}
