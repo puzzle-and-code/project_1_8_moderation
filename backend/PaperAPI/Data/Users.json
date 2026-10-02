@@ -1,0 +1,17 @@
+[
+  {
+    "Id": 0,
+    "Email": "string",
+    "Password": "string"
+  },
+  {
+    "Id": 1,
+    "Email": "stri11ng",
+    "Password": "string"
+  },
+  {
+    "Id": 2,
+    "Email": "stri3333ng",
+    "Password": "string"
+  }
+]

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Paper.Application/Paper.Application.csproj" Id="487f0da6-eb9b-4964-856e-530c78c05044" />
+  <Project Path="Paper.Domain/Paper.Domain.csproj" Id="826813b6-97fa-43fb-8302-bdf25869dc59" />
+  <Project Path="Paper.Infrastructure/Paper.Infrastructure.csproj" Id="e27052bb-2e2b-4df9-b6f4-563b717c10e5" />
+  <Project Path="PaperAPI/PaperAPI.csproj" />
+</Solution>
