@@ -1,0 +1,38 @@
+# Локальный PostgreSQL для разработки.
+#
+# Запуск:  docker compose up -d
+# Останов:  docker compose down
+# Полное удаление вместе с данными:  docker compose down -v
+#
+# Учётные данные те же, что в PaperAPI/appsettings.Development.json,
+# поэтому приложение подключится без дополнительной настройки.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: paper-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-moderationdb}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      # Ускоряет инициализацию на медленных дисках.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      # Именованный том: данные переживают пересоздание контейнера.
+      - pgdata:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-moderationdb}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  pgdata:
