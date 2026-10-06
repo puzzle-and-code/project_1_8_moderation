@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Paper.Domain\Paper.Domain.csproj" />
+    <ProjectReference Include="..\Paper.Application\Paper.Application.csproj" />
+    <ProjectReference Include="..\Paper.Infrastructure\Paper.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
