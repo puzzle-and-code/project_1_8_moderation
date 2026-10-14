@@ -1,9 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "@/layout/AppLayout";
 import HomePage from "@/pages/home/HomePage";
-import Authorisation from "@/pages/login/AuthorisationPage";
-import FormsPage from "@/pages/form/FormPage";
+import AccountPage from "@/pages/form/FormPage";
 import { NotFound } from "@/pages/error/NotFound";
+import { LoginRoute, RegisterRoute } from "@/app/AuthRoutes";
 
 export const router = createBrowserRouter([
   {
@@ -17,15 +17,15 @@ export const router = createBrowserRouter([
       },
       {
         path: "login",
-        element: (
-          <Authorisation
-            onSubmit={(mode, data) => console.log("Данные формы:", mode, data)}
-          />
-        ),
+        element: <LoginRoute />,
       },
       {
-        path: "forms",
-        element: <FormsPage />,
+        path: "register",
+        element: <RegisterRoute />,
+      },
+      {
+        path: "account",
+        element: <AccountPage />,
       },
     ],
   },
