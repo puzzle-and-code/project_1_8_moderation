@@ -7,7 +7,7 @@ export function LoginRoute() {
   return (
     <LoginPage
       onSuccess={() => {
-        navigate("/account");
+        navigate("/forms");
       }}
       onSwitchToRegister={() => navigate("/register")}
     />
@@ -19,7 +19,7 @@ export function RegisterRoute() {
   return (
     <RegisterPage
       onSuccess={() => {
-        navigate("/account");
+        navigate("/forms");
       }}
       onSwitchToLogin={() => navigate("/login")}
     />
