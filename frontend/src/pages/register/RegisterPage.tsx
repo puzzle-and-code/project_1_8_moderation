@@ -16,6 +16,7 @@ import {
 import { AuthStatusModal } from "@/components/AuthStatusModal";
 import { PasswordInput } from "@/components/PasswordInput";
 import { registerUser } from "@/api/auth";
+import { authStore } from "@/store/AuthStore";
 
 interface RegisterPageProps {
   onSuccess?: () => void;
@@ -23,7 +24,7 @@ interface RegisterPageProps {
 }
 
 interface RegisterFormState {
-  username: string;
+  displayName: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -44,7 +45,7 @@ export default function RegisterPage({
   onSwitchToLogin,
 }: RegisterPageProps) {
   const [values, setValues] = useState<RegisterFormState>({
-    username: "",
+    displayName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -75,8 +76,8 @@ export default function RegisterPage({
 
   const validate = (): RegisterFormErrors => {
     const nextErrors: RegisterFormErrors = {};
-    if (!values.username.trim()) {
-      nextErrors.username = "Введите логин.";
+    if (!values.displayName.trim()) {
+      nextErrors.displayName = "Введите имя пользователя.";
     }
     if (!values.email.trim()) {
       nextErrors.email = "Введите электронную почту.";
@@ -110,11 +111,12 @@ export default function RegisterPage({
 
     setIsSubmitting(true);
     try {
-      await registerUser({
-        username: values.username,
+      const auth = await registerUser({
+        displayName: values.displayName,
         email: values.email,
         password: values.password,
       });
+      authStore.setAuth(auth);
 
       setStatusModal({
         open: true,
@@ -221,13 +223,13 @@ export default function RegisterPage({
               required
               fullWidth
               id="register-username"
-              label="Логин"
-              name="username"
+              label="Имя пользователя"
+              name="displayName"
               autoComplete="username"
-              value={values.username}
-              onChange={(e) => handleChange("username", e)}
-              error={Boolean(errors.username)}
-              helperText={errors.username}
+              value={values.displayName}
+              onChange={(e) => handleChange("displayName", e)}
+              error={Boolean(errors.displayName)}
+              helperText={errors.displayName}
             />
 
             <TextField

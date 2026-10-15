@@ -23,7 +23,7 @@ interface LoginPageProps {
 }
 
 interface LoginFormState {
-  emailOrLogin: string;
+  email: string;
   password: string;
 }
 
@@ -40,7 +40,7 @@ export default function LoginPage({
   onSwitchToRegister,
 }: LoginPageProps) {
   const [values, setValues] = useState<LoginFormState>({
-    emailOrLogin: "",
+    email: "",
     password: "",
   });
   const [errors, setErrors] = useState<LoginFormErrors>({});
@@ -63,8 +63,8 @@ export default function LoginPage({
 
   const validate = (): LoginFormErrors => {
     const nextErrors: LoginFormErrors = {};
-    if (!values.emailOrLogin.trim()) {
-      nextErrors.emailOrLogin = "Введите электронную почту или логин.";
+    if (!values.email.trim()) {
+      nextErrors.email = "Введите электронную почту или логин.";
     }
     if (!values.password) {
       nextErrors.password = "Введите пароль.";
@@ -92,7 +92,7 @@ export default function LoginPage({
     setIsSubmitting(true);
     try {
       const auth = await loginUser({
-        emailOrLogin: values.emailOrLogin.trim(),
+        email: values.email.trim(),
         password: values.password,
       });
       authStore.setAuth(auth);
@@ -191,12 +191,12 @@ export default function LoginPage({
               id="login-identity"
               label="Электронная почта или логин"
               placeholder="example@gmail.com"
-              name="emailOrLogin"
+              name="email"
               autoComplete="username"
-              value={values.emailOrLogin}
-              onChange={(event) => handleChange("emailOrLogin", event)}
-              error={Boolean(errors.emailOrLogin)}
-              helperText={errors.emailOrLogin}
+              value={values.email}
+              onChange={(event) => handleChange("email", event)}
+              error={Boolean(errors.email)}
+              helperText={errors.email}
               fullWidth
               required
             />
