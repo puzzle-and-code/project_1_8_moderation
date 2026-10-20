@@ -1,9 +1,9 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "@/layout/AppLayout";
-import HomePage from "@/pages/home/HomePage";
-import Authorisation from "@/pages/login/AuthorisationPage";
-import FormsPage from "@/pages/form/FormPage";
+import { InitialRedirect, RequireAuth } from "@/layout/AuthRouteGuard";
+import AccountPage from "@/pages/form/FormPage";
 import { NotFound } from "@/pages/error/NotFound";
+import { LoginRoute, RegisterRoute } from "@/app/AuthRoutes";
 
 export const router = createBrowserRouter([
   {
@@ -13,19 +13,28 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: <InitialRedirect />,
       },
       {
         path: "login",
-        element: (
-          <Authorisation
-            onSubmit={(mode, data) => console.log("Данные формы:", mode, data)}
-          />
-        ),
+        element: <LoginRoute />,
       },
       {
-        path: "forms",
-        element: <FormsPage />,
+        path: "register",
+        element: <RegisterRoute />,
+      },
+      {
+        path: "account",
+        element: <Navigate to="/forms" replace />,
+      },
+      {
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "forms",
+            element: <AccountPage />,
+          },
+        ],
       },
     ],
   },
