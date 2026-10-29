@@ -28,16 +28,6 @@ function useAuthStatus(): AuthStatus {
   return status;
 }
 
-export function InitialRedirect() {
-  const { isAuthenticated, isInitializing } = useAuthStatus();
-
-  if (isInitializing) {
-    return <p role="status">Проверяем авторизацию…</p>;
-  }
-
-  return <Navigate to={isAuthenticated ? "/forms" : "/login"} replace />;
-}
-
 export function RequireAuth() {
   const { isAuthenticated, isInitializing } = useAuthStatus();
 

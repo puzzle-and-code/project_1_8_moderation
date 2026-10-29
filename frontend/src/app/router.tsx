@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "@/layout/AppLayout";
-import { InitialRedirect, RequireAuth } from "@/layout/AuthRouteGuard";
-import AccountPage from "@/pages/form/FormPage";
+import { RequireAuth } from "@/layout/AuthRouteGuard";
+import MyArticlesPage from "@/pages/articles/MyArticlesPage";
 import { NotFound } from "@/pages/error/NotFound";
 import { LoginRoute, RegisterRoute } from "@/app/AuthRoutes";
 
@@ -12,10 +12,6 @@ export const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
       {
-        index: true,
-        element: <InitialRedirect />,
-      },
-      {
         path: "login",
         element: <LoginRoute />,
       },
@@ -24,15 +20,15 @@ export const router = createBrowserRouter([
         element: <RegisterRoute />,
       },
       {
-        path: "account",
-        element: <Navigate to="/forms" replace />,
+        path: "my-articles",
+        element: <Navigate to="/" replace />,
       },
       {
         element: <RequireAuth />,
         children: [
           {
-            path: "forms",
-            element: <AccountPage />,
+            index: true,
+            element: <MyArticlesPage />,
           },
         ],
       },
