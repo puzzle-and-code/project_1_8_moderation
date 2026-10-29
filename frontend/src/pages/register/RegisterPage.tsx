@@ -86,8 +86,13 @@ export default function RegisterPage({
     }
     if (!values.password) {
       nextErrors.password = "Введите пароль.";
-    } else if (values.password.length < 8) {
-      nextErrors.password = "Пароль должен содержать не менее 8 символов.";
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+        values.password,
+      )
+    ) {
+      nextErrors.password =
+        "Пароль должен содержать не менее 8 символов, заглавную и строчную буквы, цифру и специальный символ @$!%*?&.";
     }
     if (values.confirmPassword !== values.password) {
       nextErrors.confirmPassword = "Пароли не совпадают.";
