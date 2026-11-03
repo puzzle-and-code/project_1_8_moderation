@@ -9,6 +9,7 @@ using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using Domain.Entities.UnTabled;
 
 
 
@@ -16,6 +17,33 @@ namespace Application.Services;
 
 public class UserService(IAppDbContext db, IJwtProvider jwtProvider) : IUserService
 {
+
+
+    public async Task<Roles?> GetUserRole(Guid user_id, CancellationToken ct = default)
+    {
+
+        User? user = await db.Users.FirstOrDefaultAsync(u => u.Id == user_id, ct);
+
+
+        if (user == null)
+        {
+            return null;
+        }
+
+
+        return user.Role;
+    }
+
+
+    public async Task<int?> GetUserIntRole(Guid user_id, CancellationToken ct = default)
+    {
+        Roles? role = await GetUserRole(user_id, ct);
+
+        if (!role.HasValue)
+            return null;
+
+        return (int)role.Value;
+    }
 
 
     public async Task<TokensAcReDto> RefreshTokenAsync(RefreshTokenRequestDto request, CancellationToken ct = default)

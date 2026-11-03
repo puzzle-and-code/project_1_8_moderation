@@ -68,6 +68,8 @@ public class PapersController : ControllerBase
 
     [Authorize]
     [HttpGet("my-profile")]
+    // Token JWT нужно обновить, так как роль выдают клеймы, а их нужно обновить.
+    // юзай лучше из Data Base
     public IActionResult GetMyProfile()
     {
         // 1. Получаем ID (тип клейма NameIdentifier)
