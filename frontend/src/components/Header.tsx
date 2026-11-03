@@ -108,13 +108,14 @@ export const Header = () => {
 
   return (
     <StyledHeader>
-      <Logo>Moderation App</Logo>
+      <Logo>
+        <StyledLink to="/">Moderation App</StyledLink>
+      </Logo>
       <Nav>
-        <StyledLink to="/">Главная</StyledLink>
         {!authState.isAuthenticated && !authState.isInitializing && (
           <StyledLink to="/login">Войти</StyledLink>
         )}
-        <StyledLink to="/forms">Список форм</StyledLink>
+        {authState.isAuthenticated && <StyledLink to="/">Мои статьи</StyledLink>}
         {authState.displayName && (
           <UserMenu>
             <UserButton
