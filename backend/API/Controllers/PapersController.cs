@@ -73,10 +73,13 @@ public class PapersController : ControllerBase
     public IActionResult GetMyProfile()
     {
         // 1. Получаем ID (тип клейма NameIdentifier)
-        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? raw_user_id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (raw_user_id == null) 
+            return Unauthorized("Please give me a JWT-TOKEN");
 
         // Переводим строку в Guid (так как в базе ID хранится как Guid)
-        var userId = Guid.Parse(userIdString!);
+        var user_id = Guid.Parse(raw_user_id);
 
         // 2. Получаем роль пользователя
         var role = User.FindFirstValue(ClaimTypes.Role);
@@ -85,17 +88,17 @@ public class PapersController : ControllerBase
         var email = User.FindFirstValue(ClaimTypes.Email);
 
         // 4. Получаем кастомный клейм (display_name), который мы задали вручную
-        var displayName = User.FindFirstValue("display_name");
+        var name = User.FindFirstValue("display_name");
 
         // Пример: передаем полученный userId в сервис
         // await _paperService.GetPapersByAuthorAsync(userId);
 
         return Ok(new
         {
-            Id = userId,
+            Id = user_id,
             Role = role,
             Email = email,
-            Name = displayName
+            DisplayName = name
         });
     }
 }

@@ -14,7 +14,7 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IUserService userService, IClaimService _claimService) : FundomentalController
+public class AuthController(IUserService _userService, IClaimService _claimService) : FundomentalController
 {
 
 
@@ -23,7 +23,7 @@ public class AuthController(IUserService userService, IClaimService _claimServic
     {
         try
         {
-            var result = await userService.RegisterAsync(request, ct);
+            var result = await _userService.RegisterAsync(request, ct);
             return Created("/api/auth/me", result);
         }
 
@@ -44,7 +44,7 @@ public class AuthController(IUserService userService, IClaimService _claimServic
     {
         try
         {
-            var result = await userService.LoginAsync(request, ct);
+            var result = await _userService.LoginAsync(request, ct);
             return Ok(result);
         }
         catch (UnauthorizedAccessException ex)
@@ -59,7 +59,7 @@ public class AuthController(IUserService userService, IClaimService _claimServic
     {
         try
         {
-            var result = await userService.RefreshTokenAsync(request, ct);
+            var result = await _userService.RefreshTokenAsync(request, ct);
             return Ok(result);
         }
         catch (UnauthorizedAccessException ex)
@@ -72,7 +72,7 @@ public class AuthController(IUserService userService, IClaimService _claimServic
     [HttpPost("logout")]
     public async Task<IActionResult> Logout([FromBody] LogoutRequestDto request, CancellationToken ct)
     {
-        await userService.LogoutAsync(request, ct);
+        await _userService.LogoutAsync(request, ct);
 
         // При логауте обычно просто возвращаем 200 OK без данных
         return Ok(new { message = "Вы успешно вышли из системы." });
