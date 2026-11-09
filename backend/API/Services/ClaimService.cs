@@ -8,7 +8,7 @@ namespace Application.Services;
 public class ClaimService(IHttpContextAccessor _httpContextAccessor) : IClaimService
 {
 
-    public Guid GetUserId()
+    public Guid? GetUserId()
     {
         // Получаем пользователя из текущего HTTP-контекста
         var user = _httpContextAccessor.HttpContext?.User;

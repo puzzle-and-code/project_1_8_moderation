@@ -3,6 +3,7 @@ using Application.DependencyInjections;
 using Infrastructure.Authentication;
 using Infrastructure.DependencyInjections;
 using Infrastructure.Persistence; // Для AppDbContext при авто-миграции
+using Infrastructure.Persistence.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -74,6 +75,8 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Backend API на .NET 8"
     });
+
+    options.OperationFilter<SwaggerDefaultErrorFilter>();
 
     // Добавляем кнопку "Authorize" (замочек) в Swagger для ввода JWT-токена
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

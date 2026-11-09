@@ -10,7 +10,7 @@ namespace Application.Interfaces.Services;
 public interface IClaimService
 {
 
-    public Guid GetUserId();
+    public Guid? GetUserId();
 
 
     public Roles? GetRole();
