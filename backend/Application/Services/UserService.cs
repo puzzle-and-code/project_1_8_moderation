@@ -15,14 +15,14 @@ using Domain.Entities.UnTabled;
 
 namespace Application.Services;
 
-public class UserService(IAppDbContext db, IJwtProvider jwtProvider) : IUserService
+public class UserService(IAppDbContext _db, IJwtProvider _jwtProvider) : IUserService
 {
 
 
-    public async Task<Roles?> GetUserRole(Guid user_id, CancellationToken ct = default)
+    public async Task<Roles?> GetUserRole(Guid userId, CancellationToken ct = default)
     {
 
-        User? user = await db.Users.FirstOrDefaultAsync(u => u.Id == user_id, ct);
+        User? user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
 
 
         if (user == null)
@@ -35,9 +35,9 @@ public class UserService(IAppDbContext db, IJwtProvider jwtProvider) : IUserServ
     }
 
 
-    public async Task<int?> GetUserIntRole(Guid user_id, CancellationToken ct = default)
+    public async Task<int?> GetUserIntRole(Guid userId, CancellationToken ct = default)
     {
-        Roles? role = await GetUserRole(user_id, ct);
+        Roles? role = await GetUserRole(userId, ct);
 
         if (!role.HasValue)
             return null;
@@ -48,56 +48,56 @@ public class UserService(IAppDbContext db, IJwtProvider jwtProvider) : IUserServ
 
     public async Task<TokensAcReDto> RefreshTokenAsync(RefreshTokenRequestDto request, CancellationToken ct = default)
     {
-        var tokenHash = HashToken(request.RefreshToken);
+        var token_hash = HashToken(request.RefreshToken);
 
         // Ищем токен в БД вместе с пользователем (Include нужен, чтобы потом сгенерировать Access-токен)
-        var existingToken = await db.RefreshTokens
+        var existing_token = await _db.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, ct);
+            .FirstOrDefaultAsync(rt => rt.TokenHash == token_hash, ct);
 
         // Проверяем: существует ли токен, не отозван ли он и не истёк ли срок годности
-        if (existingToken == null || existingToken.RevokedAt != null || existingToken.ExpiresAt < DateTime.UtcNow)
+        if (existing_token == null || existing_token.RevokedAt != null || existing_token.ExpiresAt < DateTime.UtcNow)
         {
             throw new UnauthorizedAccessException("Невалидный или просроченный Refresh Token.");
         }
 
         // Помечаем старый токен как отозванный (Token Rotation)
-        existingToken.RevokedAt = DateTime.UtcNow;
+        existing_token.RevokedAt = DateTime.UtcNow;
 
         // Генерируем новую пару токенов
-        var newAccessToken = jwtProvider.GenerateAccessToken(existingToken.User);
-        var newRefreshTokenString = jwtProvider.GenerateRefreshToken();
+        var access_token = _jwtProvider.GenerateAccessToken(existing_token.User);
+        var refresh_token = _jwtProvider.GenerateRefreshToken();
 
-        var newRefreshToken = new RefreshToken
+        var RefreshToken = new RefreshToken
         {
-            UserId = existingToken.User.Id,
-            TokenHash = HashToken(newRefreshTokenString),
+            UserId = existing_token.User.Id,
+            TokenHash = HashToken(access_token),
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         };
 
-        db.RefreshTokens.Add(newRefreshToken);
-        await db.SaveChangesAsync(ct);
+        _db.RefreshTokens.Add(RefreshToken);
+        await _db.SaveChangesAsync(ct);
 
         return new TokensAcReDto
         {
-            AccessToken = newAccessToken,
-            RefreshToken = newRefreshTokenString
+            AccessToken = access_token,
+            RefreshToken = refresh_token
         };
     }
 
     public async Task LogoutAsync(LogoutRequestDto request, CancellationToken ct = default)
     {
-        var tokenHash = HashToken(request.RefreshToken);
+        var token_hash = HashToken(request.RefreshToken);
 
         // Ищем токен
-        var existingToken = await db.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, ct);
+        var existing_oken = await _db.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.TokenHash == token_hash, ct);
 
         // Если токен найден и ещё не отозван — отзываем его
-        if (existingToken != null && existingToken.RevokedAt == null)
+        if (existing_oken != null && existing_oken.RevokedAt == null)
         {
-            existingToken.RevokedAt = DateTime.UtcNow;
-            await db.SaveChangesAsync(ct);
+            existing_oken.RevokedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
         }
     }
 
@@ -105,7 +105,7 @@ public class UserService(IAppDbContext db, IJwtProvider jwtProvider) : IUserServ
     {
         var email = request.Email.Trim().ToLowerInvariant();
 
-        if (await db.Users.AnyAsync(u => u.Email == email, ct))
+        if (await _db.Users.AnyAsync(u => u.Email == email, ct))
         {
             throw new ConflictException("Пользователь с таким email уже существует.");
         }
@@ -117,27 +117,27 @@ public class UserService(IAppDbContext db, IJwtProvider jwtProvider) : IUserServ
             PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.Password)
         };
 
-        var accessToken = jwtProvider.GenerateAccessToken(user);
-        var refreshTokenString = jwtProvider.GenerateRefreshToken();
+        var access_token = _jwtProvider.GenerateAccessToken(user);
+        var refresh_token = _jwtProvider.GenerateRefreshToken();
 
-        var refreshToken = new RefreshToken
+        var RefreshToken = new RefreshToken
         {
             UserId = user.Id,
-            TokenHash = HashToken(refreshTokenString),
+            TokenHash = HashToken(refresh_token),
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             User = user
         };
 
-        db.Users.Add(user);
-        db.RefreshTokens.Add(refreshToken);
-        await db.SaveChangesAsync(ct);
+        _db.Users.Add(user);
+        _db.RefreshTokens.Add(RefreshToken);
+        await _db.SaveChangesAsync(ct);
 
         return new RegisterResponseDto
         {
             Tokens = new DTOs.auth.Tokens.TokensAcReDto
             {
-                AccessToken = accessToken,
-                RefreshToken = refreshTokenString
+                AccessToken = access_token,
+                RefreshToken = refresh_token
             }
         };
     }
@@ -145,32 +145,32 @@ public class UserService(IAppDbContext db, IJwtProvider jwtProvider) : IUserServ
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request, CancellationToken ct = default)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
 
         if (user == null || !BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Неверный email или пароль.");
         }
 
-        var accessToken = jwtProvider.GenerateAccessToken(user);
-        var refreshTokenString = jwtProvider.GenerateRefreshToken();
+        var access_token = _jwtProvider.GenerateAccessToken(user);
+        var refresh_token = _jwtProvider.GenerateRefreshToken();
 
-        var refreshToken = new RefreshToken
+        var RefreshToken = new RefreshToken
         {
             UserId = user.Id,
-            TokenHash = HashToken(refreshTokenString),
+            TokenHash = HashToken(refresh_token),
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         };
 
-        db.RefreshTokens.Add(refreshToken);
-        await db.SaveChangesAsync(ct);
+        _db.RefreshTokens.Add(RefreshToken);
+        await _db.SaveChangesAsync(ct);
 
         return new LoginResponseDto
         {
             Tokens = new DTOs.auth.Tokens.TokensAcReDto
             {
-                AccessToken = accessToken,
-                RefreshToken = refreshTokenString
+                AccessToken = access_token,
+                RefreshToken = refresh_token
             }
         };
     }

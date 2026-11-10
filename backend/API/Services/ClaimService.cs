@@ -8,14 +8,14 @@ namespace Application.Services;
 public class ClaimService(IHttpContextAccessor _httpContextAccessor) : IClaimService
 {
 
-    public Guid GetUserId()
+    public Guid? GetUserId()
     {
         // Получаем пользователя из текущего HTTP-контекста
         var user = _httpContextAccessor.HttpContext?.User;
 
-        var userIdStr = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user_id_string = user?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return Guid.TryParse(userIdStr, out var userId) ? userId : Guid.Empty;
+        return Guid.TryParse(user_id_string, out var userId) ? userId : Guid.Empty;
     }
 
 
