@@ -1,3 +1,4 @@
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Application.DTOs.articles;
@@ -26,7 +27,9 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<GetArticleDto>> Create([FromBody] CreateArticleDto request, CancellationToken ct)
+    public async Task<ActionResult<GetArticleDto>> Create(
+        [FromBody] CreateArticleDto request,
+        CancellationToken ct)
     {
         var userId = GetUserId();
         if (userId is null)
@@ -43,6 +46,32 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    // Получение полной информации о собственной статье
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<GetArticleDetailsDto>> GetById(
+        Guid id,
+        CancellationToken ct)
+    {
+        var userId = GetUserId();
+
+        if (userId is null)
+        {
+            return Unauthorized(new { error = "Не удалось определить пользователя." });
+        }
+
+        var article = await articleService.GetArticleByIdAsync(
+            id,
+            userId.Value,
+            ct);
+
+        if (article is null)
+        {
+            return NotFound(new { error = "Статья не найдена." });
+        }
+
+        return Ok(article);
     }
 
     private Guid? GetUserId()

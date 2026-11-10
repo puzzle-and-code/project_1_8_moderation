@@ -74,4 +74,23 @@ public class ArticleService(IAppDbContext db) : IArticleService
             UpdatedAt = article.UpdatedAt
         };
     }
+
+    public async Task<GetArticleDetailsDto?> GetArticleByIdAsync(
+    Guid articleId,
+    Guid authorId,
+    CancellationToken ct = default)
+    {
+    return await db.Articles
+        .AsNoTracking()
+        .Where(a => a.Id == articleId && a.AuthorId == authorId)
+        .Select(a => new GetArticleDetailsDto
+        {
+            Id = a.Id,
+            Title = a.Title,
+            Content = a.Content,
+            ExtraData = a.ExtraData,
+            Status = a.Status.ToString()
+        })
+        .FirstOrDefaultAsync(ct);
+    }
 }
