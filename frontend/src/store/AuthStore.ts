@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import { refreshAuthSession, REFRESH_TOKEN_KEY } from "@/api/authSession";
 import type { AuthResponse } from "@/types/auth";
 
@@ -36,33 +36,33 @@ class AuthStore {
     return typeof this.accessToken === "string" && this.accessToken.length > 0;
   }
 
-  setAuth = (auth: AuthResponse): void => {
+  setAuth(auth: AuthResponse): void {
     this.accessToken = auth.accessToken;
     this.user = auth.user;
 
     localStorage.setItem(USER_KEY, JSON.stringify(auth.user));
     sessionStorage.setItem(REFRESH_TOKEN_KEY, auth.refreshToken);
-  };
+  }
 
-  setAccessToken = (token: string): void => {
+  setAccessToken(token: string): void {
     this.accessToken = token;
-  };
+  }
 
-  clearAuth = (): void => {
+  clearAuth(): void {
     this.accessToken = null;
     this.user = null;
     localStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-  };
+  }
 
-  initialize = (): Promise<void> => {
+  initialize(): Promise<void> {
     if (!initializationPromise) {
       initializationPromise = this.restoreSession();
     }
     return initializationPromise;
-  };
+  }
 
-  private restoreSession = async (): Promise<void> => {
+  private async restoreSession(): Promise<void> {
     try {
       const auth = await refreshAuthSession();
       if (auth) {
@@ -74,11 +74,13 @@ class AuthStore {
       this.clearAuth();
       console.error("Не удалось восстановить сессию:", error);
     } finally {
-      this.isInitializing = false;
+      runInAction(() => {
+        this.isInitializing = false;
+      });
     }
-  };
+  }
 
-  private loadUserFromStorage = (): void => {
+  private loadUserFromStorage(): void {
     const storedUser = localStorage.getItem(USER_KEY);
     if (!storedUser) {
       return;
@@ -94,7 +96,7 @@ class AuthStore {
     } catch {
       localStorage.removeItem(USER_KEY);
     }
-  };
+  }
 }
 
 export const authStore = new AuthStore();

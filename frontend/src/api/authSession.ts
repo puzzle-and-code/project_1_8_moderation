@@ -1,6 +1,7 @@
 import type { AuthResponse } from "@/types/auth";
+import { resolveApiUrl } from "@/api/apiUrl";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5009/api";
+const API_URL = resolveApiUrl();
 export const REFRESH_TOKEN_KEY = "auth_refresh_token";
 
 interface JwtClaims {
@@ -10,6 +11,8 @@ interface JwtClaims {
   display_name?: string;
   displayName?: string;
   name?: string;
+  role?: string;
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -56,6 +59,9 @@ export function parseAuthResponse(response: unknown): AuthResponse {
   const id = claims.sub ?? claims.nameid;
   const displayName =
     claims.display_name ?? claims.displayName ?? claims.name ?? claims.email;
+  const role =
+    claims.role ??
+    claims["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
   if (!id || !claims.email || !displayName) {
     throw new Error("В access-токене отсутствуют данные пользователя.");
   }
@@ -63,7 +69,7 @@ export function parseAuthResponse(response: unknown): AuthResponse {
   return {
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
-    user: { id, email: claims.email, displayName },
+    user: { id, email: claims.email, displayName, role },
   };
 }
 

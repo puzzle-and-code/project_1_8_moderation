@@ -29,6 +29,7 @@ interface RegisterFormState {
   password: string;
   confirmPassword: string;
   privacyAccepted: boolean;
+  asModerator: boolean;
 }
 
 interface AuthStatus {
@@ -38,7 +39,10 @@ interface AuthStatus {
 }
 
 type RegisterFormErrors = Partial<Record<keyof RegisterFormState, string>>;
-type RegisterTextField = Exclude<keyof RegisterFormState, "privacyAccepted">;
+type RegisterTextField = Exclude<
+  keyof RegisterFormState,
+  "privacyAccepted" | "asModerator"
+>;
 
 export default function RegisterPage({
   onSuccess,
@@ -50,6 +54,7 @@ export default function RegisterPage({
     password: "",
     confirmPassword: "",
     privacyAccepted: false,
+    asModerator: false,
   });
   const [errors, setErrors] = useState<RegisterFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,6 +125,7 @@ export default function RegisterPage({
         displayName: values.displayName,
         email: values.email,
         password: values.password,
+        asModerator: values.asModerator,
       });
       authStore.setAuth(auth);
 
@@ -273,6 +279,25 @@ export default function RegisterPage({
                 autoComplete="new-password"
               />
             </Box>
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={values.asModerator}
+                  onChange={(event) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      asModerator: event.target.checked,
+                    }))
+                  }
+                  color="primary"
+                />
+              }
+              label={
+                <Typography variant="body2">Я регистрируюсь как модератор</Typography>
+              }
+              sx={{ mt: 1, display: "flex" }}
+            />
 
             <FormControlLabel
               control={
