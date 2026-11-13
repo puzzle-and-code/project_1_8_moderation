@@ -12,28 +12,20 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { Link, useNavigate } from "react-router-dom";
 import { getMyArticles } from "@/api/articles";
-import type { MyArticle } from "@/types/article";
+import { authStore } from "@/store/AuthStore";
+import {
+  articleStatusColor,
+  articleStatusLabel,
+  type MyArticle,
+} from "@/types/article";
 
 type ArticlesView =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "empty" }
   | { status: "ready"; articles: MyArticle[] };
-
-const statusLabel: Record<string, string> = {
-  Draft: "Черновик",
-  OnModeration: "На модерации",
-  Rejected: "Отклонена",
-  Published: "Опубликована",
-};
-
-const statusColor: Record<string, "default" | "warning" | "error" | "success"> = {
-  Draft: "default",
-  OnModeration: "warning",
-  Rejected: "error",
-  Published: "success",
-};
 
 function formatUpdatedAt(value: string): string {
   const date = new Date(value);
@@ -52,7 +44,7 @@ function formatUpdatedAt(value: string): string {
 
 function CreateArticleButton() {
   return (
-    <Button variant="contained" type="button">
+    <Button variant="contained" component={Link} to="/articles/new">
       Создать статью
     </Button>
   );
@@ -62,8 +54,8 @@ function ArticleStatus({ status }: { status: string }) {
   return (
     <Chip
       size="small"
-      label={statusLabel[status] ?? status}
-      color={statusColor[status] ?? "default"}
+      label={articleStatusLabel[status] ?? status}
+      color={articleStatusColor[status] ?? "default"}
     />
   );
 }
@@ -73,7 +65,13 @@ function UpdatedAt({ value }: { value: string }) {
 }
 
 export default function MyArticlesPage() {
+  const navigate = useNavigate();
+  const isModerator = authStore.user?.role === "Moderator";
   const [view, setView] = useState<ArticlesView>({ status: "loading" });
+
+  const openArticle = (articleId: string) => {
+    navigate(`/articles/${articleId}`);
+  };
 
   useEffect(() => {
     let active = true;
@@ -144,7 +142,9 @@ export default function MyArticlesPage() {
 
         {view.status === "empty" && (
           <Box role="status" sx={{ py: 6, textAlign: "center" }}>
-            <Typography sx={{ mb: 2 }}>У вас пока нет статей</Typography>
+            <Typography sx={{ mb: 2 }}>
+              {isModerator ? "Нет статей на модерации" : "У вас пока нет статей"}
+            </Typography>
             <CreateArticleButton />
           </Box>
         )}
@@ -155,15 +155,25 @@ export default function MyArticlesPage() {
               {view.articles.map((article) => (
                 <Box
                   key={article.id}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => openArticle(article.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openArticle(article.id);
+                    }
+                  }}
                   sx={{
                     display: "grid",
                     gap: 1,
                     pb: 2,
                     borderBottom: 1,
                     borderColor: "divider",
+                    cursor: "pointer",
                   }}
                 >
-                  <Typography>{article.title}</Typography>
+                  <Typography>{article.title || "Без названия"}</Typography>
                   <Box
                     sx={{
                       display: "flex",
@@ -191,8 +201,20 @@ export default function MyArticlesPage() {
                 </TableHead>
                 <TableBody>
                   {view.articles.map((article) => (
-                    <TableRow key={article.id} hover>
-                      <TableCell>{article.title}</TableCell>
+                    <TableRow
+                      key={article.id}
+                      hover
+                      tabIndex={0}
+                      onClick={() => openArticle(article.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openArticle(article.id);
+                        }
+                      }}
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <TableCell>{article.title || "Без названия"}</TableCell>
                       <TableCell>
                         <ArticleStatus status={article.status} />
                       </TableCell>

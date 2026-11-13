@@ -1,7 +1,8 @@
 import { authStore } from "@/store/AuthStore";
 import { refreshAuthSession } from "@/api/authSession";
+import { resolveApiUrl } from "@/api/apiUrl";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5009/api";
+const API_URL = resolveApiUrl();
 const AUTH_ENDPOINTS = ["/auth/login", "/auth/register", "/auth/refresh"];
 
 async function request<T>(

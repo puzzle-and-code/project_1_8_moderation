@@ -6,6 +6,7 @@ export interface RegisterCredentials {
   displayName: string;
   email: string;
   password: string;
+  asModerator: boolean;
 }
 
 export interface LoginCredentials {
