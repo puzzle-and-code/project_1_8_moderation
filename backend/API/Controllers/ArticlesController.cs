@@ -3,6 +3,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Application.DTOs.articles;
 using Application.Interfaces.Services;
+using Domain.Entities.UnTabled;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +24,10 @@ public class ArticlesController(IArticleService _articleService) : ControllerBas
             return Unauthorized(new { error = "Не удалось определить пользователя." });
         }
 
-        var articles = await _articleService.GetMyArticlesAsync(user_id.Value, ct);
+        var articles = await _articleService.GetMyArticlesAsync(
+            user_id.Value,
+            IsModerator(),
+            ct);
         return Ok(articles);
     }
 
@@ -61,9 +66,10 @@ public class ArticlesController(IArticleService _articleService) : ControllerBas
             return Unauthorized(new { error = "Не удалось определить пользователя." });
         }
 
-        var article = await articleService.GetArticleByIdAsync(
+        var article = await _articleService.GetArticleByIdAsync(
             id,
             userId.Value,
+            IsModerator(),
             ct);
 
         if (article is null)
@@ -73,6 +79,69 @@ public class ArticlesController(IArticleService _articleService) : ControllerBas
 
         return Ok(article);
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<GetArticleDetailsDto>> Update(
+        Guid id,
+        [FromBody] UpdateArticleDto request,
+        CancellationToken ct)
+    {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized(new { error = "Не удалось определить пользователя." });
+        }
+
+        try
+        {
+            var article = await _articleService.UpdateArticleAsync(id, userId.Value, request, ct);
+            if (article is null)
+            {
+                return NotFound(new { error = "Статья не найдена." });
+            }
+
+            return Ok(article);
+        }
+        catch (ConflictException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:guid}/submit")]
+    public async Task<ActionResult<GetArticleDetailsDto>> Submit(Guid id, CancellationToken ct)
+    {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized(new { error = "Не удалось определить пользователя." });
+        }
+
+        try
+        {
+            var article = await _articleService.SubmitArticleAsync(id, userId.Value, ct);
+            if (article is null)
+            {
+                return NotFound(new { error = "Статья не найдена." });
+            }
+
+            return Ok(article);
+        }
+        catch (ConflictException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private bool IsModerator() => User.IsInRole(nameof(Roles.Moderator));
 
     private Guid? GetUserId()
     {

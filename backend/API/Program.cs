@@ -1,5 +1,7 @@
 
 using Application.DependencyInjections;
+using Application.Interfaces.Services;
+using Application.Services;
 using Infrastructure.Authentication;
 using Infrastructure.DependencyInjections;
 using Infrastructure.Persistence; // Для AppDbContext при авто-миграции
@@ -15,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Подключаем контроллеры (DataAnnotations на DTO будут валидироваться автоматически)
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IClaimService, ClaimService>();
 builder.Services.AddApplication();
 
 // 2. Подключаем слои Application и Infrastructure (EF Core + Npgsql + snake_case)
@@ -62,9 +66,14 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy
-        .WithOrigins("http://localhost:5173", "http://localhost:3000")
+        .WithOrigins(
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000")
         .AllowAnyHeader()
-        .AllowAnyMethod());
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 
