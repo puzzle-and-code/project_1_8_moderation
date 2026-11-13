@@ -114,7 +114,8 @@ public class UserService(IAppDbContext _db, IJwtProvider _jwtProvider) : IUserSe
         {
             Email = email,
             DisplayName = request.DisplayName,
-            PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.Password)
+            PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.Password),
+            Role = request.AsModerator ? Roles.Moderator : Roles.Journalist
         };
 
         var access_token = _jwtProvider.GenerateAccessToken(user);

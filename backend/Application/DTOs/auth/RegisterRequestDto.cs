@@ -23,4 +23,6 @@ public class RegisterRequestDto
     [MinLength(2, ErrorMessage = "Имя должно содержать минимум 2 символа")]
     [MaxLength(100, ErrorMessage = "Имя не может быть длиннее 100 символов")]
     public string DisplayName { get; set; } = string.Empty;
+
+    public bool AsModerator { get; set; }
 }
