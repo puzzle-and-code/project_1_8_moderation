@@ -10,6 +10,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("users");
 
+
+        // If UserRole needs save to string not int
+        // Now it saving into int;
+        // #INT ROLES
+        //builder.Property(u => u.Role)
+        //       .HasConversion<string>();
+
         // id | uuid | PK
         builder.HasKey(u => u.Id);
         builder.Property(u => u.Id)

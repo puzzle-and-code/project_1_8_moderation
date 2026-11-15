@@ -3,6 +3,7 @@ using Application.DependencyInjections;
 using Infrastructure.Authentication;
 using Infrastructure.DependencyInjections;
 using Infrastructure.Persistence; // Для AppDbContext при авто-миграции
+using Infrastructure.Persistence.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,8 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Подключаем контроллеры (DataAnnotations на DTO будут валидироваться автоматически)
 builder.Services.AddControllers();
-
-
 builder.Services.AddApplication();
 
 // 2. Подключаем слои Application и Infrastructure (EF Core + Npgsql + snake_case)
@@ -27,10 +26,12 @@ var jwtOptions = builder.Configuration
     .Get<JwtOptions>()
     ?? throw new InvalidOperationException("Секция JWT не найдена в конфигурации.");
 
+
 if (string.IsNullOrWhiteSpace(jwtOptions.SecretKey))
 {
     throw new InvalidOperationException("JWT SecretKey не задан в конфигурации.");
 }
+
 
 builder.Services
     .AddAuthentication(options =>
@@ -53,7 +54,9 @@ builder.Services
         };
     });
 
+
 builder.Services.AddAuthorization();
+
 
 // CORS:
 builder.Services.AddCors(options =>
@@ -63,6 +66,7 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
+
 
 // 4. Настраиваем Swagger (Swashbuckle) + кнопку Authorize для JWT
 builder.Services.AddEndpointsApiExplorer();
@@ -74,6 +78,9 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Backend API на .NET 8"
     });
+
+    // Filter 400 500 Errors
+    options.OperationFilter<SwaggerDefaultErrorFilter>();
 
     // Добавляем кнопку "Authorize" (замочек) в Swagger для ввода JWT-токена
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -111,16 +118,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
     using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbContext.Database.MigrateAsync();
+    var DateBaseContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DateBaseContext.Database.MigrateAsync();
 }
 
 app.UseHttpsRedirection();
 
 app.UseCors();
 
-// Важен порядок: сначала UseAuthentication (кто ты?), затем UseAuthorization (что тебе можно?)
+// Важен порядок: 
+// Сначала UseAuthentication (кто ты?),
 app.UseAuthentication();
+
+// Затем UseAuthorization (что тебе можно?)
 app.UseAuthorization();
 
 app.MapControllers();

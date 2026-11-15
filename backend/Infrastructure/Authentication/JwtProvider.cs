@@ -19,8 +19,16 @@ public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
+
+            // Naming:
+                // Default
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                // ASP
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
             new Claim("display_name", user.DisplayName)
         };
 

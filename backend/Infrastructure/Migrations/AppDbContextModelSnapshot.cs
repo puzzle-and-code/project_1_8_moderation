@@ -147,6 +147,10 @@ namespace Infrastructure.Migrations
                         .HasColumnName("password_hash")
                         .HasComment("Хеш, не пароль");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
                     b.HasKey("Id")
                         .HasName("pk_users");
 
