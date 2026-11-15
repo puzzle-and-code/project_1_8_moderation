@@ -1,3 +1,4 @@
+
 using Application.DTOs.articles;
 
 namespace Application.Interfaces.Services;
@@ -5,10 +6,15 @@ namespace Application.Interfaces.Services;
 public interface IArticleService
 {
     Task<List<GetArticleDto>> GetMyArticlesAsync(Guid authorId, CancellationToken ct = default);
+
     Task<GetArticleDto> CreateArticleAsync(Guid authorId, CreateArticleDto request, CancellationToken ct = default);
 
     Task<GetArticleDetailsDto?> GetArticleByIdAsync(
-    Guid articleId,
-    Guid authorId,
-    CancellationToken ct = default);
+        Guid articleId,
+        Guid authorId,
+        CancellationToken ct = default);
+
+    Task<GetExternalArticleDto?> GetExternalArticleByIdAsync(
+        Guid articleId,
+        CancellationToken ct = default);
 }

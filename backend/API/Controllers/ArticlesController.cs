@@ -1,4 +1,3 @@
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Application.DTOs.articles;
@@ -14,15 +13,23 @@ namespace API.Controllers;
 public class ArticlesController(IArticleService articleService) : ControllerBase
 {
     [HttpGet("mine")]
-    public async Task<ActionResult<List<GetArticleDto>>> GetMine(CancellationToken ct)
+    public async Task<ActionResult<List<GetArticleDto>>> GetMine(
+        CancellationToken ct)
     {
         var userId = GetUserId();
+
         if (userId is null)
         {
-            return Unauthorized(new { error = "Не удалось определить пользователя." });
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
         }
 
-        var articles = await articleService.GetMyArticlesAsync(userId.Value, ct);
+        var articles = await articleService.GetMyArticlesAsync(
+            userId.Value,
+            ct);
+
         return Ok(articles);
     }
 
@@ -32,14 +39,22 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
         CancellationToken ct)
     {
         var userId = GetUserId();
+
         if (userId is null)
         {
-            return Unauthorized(new { error = "Не удалось определить пользователя." });
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
         }
 
         try
         {
-            var article = await articleService.CreateArticleAsync(userId.Value, request, ct);
+            var article = await articleService.CreateArticleAsync(
+                userId.Value,
+                request,
+                ct);
+
             return StatusCode(StatusCodes.Status201Created, article);
         }
         catch (ArgumentException ex)
@@ -58,7 +73,10 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
 
         if (userId is null)
         {
-            return Unauthorized(new { error = "Не удалось определить пользователя." });
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
         }
 
         var article = await articleService.GetArticleByIdAsync(

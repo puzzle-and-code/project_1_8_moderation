@@ -1,3 +1,4 @@
+
 using System.Text.Json;
 using Application.DTOs.articles;
 using Application.Interfaces;
@@ -10,7 +11,9 @@ namespace Application.Services;
 
 public class ArticleService(IAppDbContext db) : IArticleService
 {
-    public async Task<List<GetArticleDto>> GetMyArticlesAsync(Guid authorId, CancellationToken ct = default)
+    public async Task<List<GetArticleDto>> GetMyArticlesAsync(
+        Guid authorId,
+        CancellationToken ct = default)
     {
         var articles = await db.Articles
             .AsNoTracking()
@@ -36,7 +39,10 @@ public class ArticleService(IAppDbContext db) : IArticleService
             .ToList();
     }
 
-    public async Task<GetArticleDto> CreateArticleAsync(Guid authorId, CreateArticleDto request, CancellationToken ct = default)
+    public async Task<GetArticleDto> CreateArticleAsync(
+        Guid authorId,
+        CreateArticleDto request,
+        CancellationToken ct = default)
     {
         if (!string.IsNullOrWhiteSpace(request.ExtraData))
         {
@@ -46,7 +52,8 @@ public class ArticleService(IAppDbContext db) : IArticleService
             }
             catch (JsonException)
             {
-                throw new ArgumentException("Поле extraData должно содержать корректный JSON.");
+                throw new ArgumentException(
+                    "Поле extraData должно содержать корректный JSON.");
             }
         }
 
@@ -57,7 +64,9 @@ public class ArticleService(IAppDbContext db) : IArticleService
             AuthorId = authorId,
             Title = request.Title.Trim(),
             Content = request.Content,
-            ExtraData = string.IsNullOrWhiteSpace(request.ExtraData) ? null : request.ExtraData,
+            ExtraData = string.IsNullOrWhiteSpace(request.ExtraData)
+                ? null
+                : request.ExtraData,
             Status = ArticleStatus.Draft,
             CreatedAt = now,
             UpdatedAt = now
@@ -76,21 +85,36 @@ public class ArticleService(IAppDbContext db) : IArticleService
     }
 
     public async Task<GetArticleDetailsDto?> GetArticleByIdAsync(
-    Guid articleId,
-    Guid authorId,
-    CancellationToken ct = default)
+        Guid articleId,
+        Guid authorId,
+        CancellationToken ct = default)
     {
-    return await db.Articles
-        .AsNoTracking()
-        .Where(a => a.Id == articleId && a.AuthorId == authorId)
-        .Select(a => new GetArticleDetailsDto
-        {
-            Id = a.Id,
-            Title = a.Title,
-            Content = a.Content,
-            ExtraData = a.ExtraData,
-            Status = a.Status.ToString()
-        })
-        .FirstOrDefaultAsync(ct);
+        return await db.Articles
+            .AsNoTracking()
+            .Where(a => a.Id == articleId && a.AuthorId == authorId)
+            .Select(a => new GetArticleDetailsDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Content = a.Content,
+                ExtraData = a.ExtraData,
+                Status = a.Status.ToString()
+            })
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<GetExternalArticleDto?> GetExternalArticleByIdAsync(
+        Guid articleId,
+        CancellationToken ct = default)
+    {
+        return await db.Articles
+            .AsNoTracking()
+            .Where(a => a.Id == articleId)
+            .Select(a => new GetExternalArticleDto
+            {
+                Title = a.Title,
+                Content = a.Content
+            })
+            .FirstOrDefaultAsync(ct);
     }
 }
