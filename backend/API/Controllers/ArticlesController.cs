@@ -14,15 +14,23 @@ namespace API.Controllers;
 public class ArticlesController(IArticleService _articleService) : ControllerBase
 {
     [HttpGet("mine")]
-    public async Task<ActionResult<List<GetArticleDto>>> GetMine(CancellationToken ct)
+    public async Task<ActionResult<List<GetArticleDto>>> GetMine(
+        CancellationToken ct)
     {
         var user_id = GetUserId();
+
         if (user_id is null)
         {
-            return Unauthorized(new { error = "Не удалось определить пользователя." });
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
         }
 
-        var articles = await _articleService.GetMyArticlesAsync(user_id.Value, ct);
+        var articles = await _articleService.GetMyArticlesAsync(
+            user_id.Value,
+            ct);
+
         return Ok(articles);
     }
 
@@ -32,14 +40,22 @@ public class ArticlesController(IArticleService _articleService) : ControllerBas
         CancellationToken ct)
     {
         var user_id = GetUserId();
+
         if (user_id is null)
         {
-            return Unauthorized(new { error = "Не удалось определить пользователя." });
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
         }
 
         try
         {
-            var article = await _articleService.CreateArticleAsync(user_id.Value, request, ct);
+            var article = await _articleService.CreateArticleAsync(
+                user_id.Value,
+                request,
+                ct);
+
             return StatusCode(StatusCodes.Status201Created, article);
         }
         catch (ArgumentException ex)
@@ -48,22 +64,24 @@ public class ArticlesController(IArticleService _articleService) : ControllerBas
         }
     }
 
-    // Получение полной информации о собственной статье
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<GetArticleDetailsDto>> GetById(
         Guid id,
         CancellationToken ct)
     {
-        var userId = GetUserId();
+        var user_id = GetUserId();
 
-        if (userId is null)
+        if (user_id is null)
         {
-            return Unauthorized(new { error = "Не удалось определить пользователя." });
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
         }
 
-        var article = await articleService.GetArticleByIdAsync(
+        var article = await _articleService.GetArticleByIdAsync(
             id,
-            userId.Value,
+            user_id.Value,
             ct);
 
         if (article is null)
@@ -82,3 +100,4 @@ public class ArticlesController(IArticleService _articleService) : ControllerBas
         return Guid.TryParse(value, out var id) ? id : null;
     }
 }
+
