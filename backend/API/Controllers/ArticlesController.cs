@@ -92,6 +92,97 @@ public class ArticlesController(IArticleService _articleService) : ControllerBas
         return Ok(article);
     }
 
+    // Редактирование собственной статьи автором
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateArticleDto request,
+        CancellationToken ct)
+    {
+        var authorId = GetUserId();
+
+        if (authorId is null)
+        {
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
+        }
+
+        try
+        {
+            var updated = await articleService.UpdateArticleAsync(
+                id,
+                authorId.Value,
+                request,
+                ct);
+
+            if (!updated)
+            {
+                return NotFound(new
+                {
+                    error = "Статья не найдена."
+                });
+            }
+
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
+    }
+
+    // Отклонение статьи модератором
+    [HttpPost("{id:guid}/reject")]
+    [Authorize(Roles = "Moderator")]
+    public async Task<IActionResult> Reject(
+        Guid id,
+        [FromBody] RejectArticleDto request,
+        CancellationToken ct)
+    {
+        var moderatorId = GetUserId();
+
+        if (moderatorId is null)
+        {
+            return Unauthorized(new
+            {
+                error = "Не удалось определить пользователя."
+            });
+        }
+
+        try
+        {
+            var rejected = await articleService.RejectArticleAsync(
+                id,
+                moderatorId.Value,
+                request.Comment,
+                ct);
+
+            if (!rejected)
+            {
+                return NotFound(new
+                {
+                    error = "Статья не найдена."
+                });
+            }
+
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
+    }
+
     private Guid? GetUserId()
     {
         var value = User.FindFirstValue(JwtRegisteredClaimNames.Sub)

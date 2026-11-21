@@ -5,6 +5,14 @@ namespace Application.Interfaces;
 
 public interface IAppDbContext
 {
+    DbSet<User> Users { get; }
+
+    DbSet<RefreshToken> RefreshTokens { get; }
+
+    DbSet<Article> Articles { get; }
+
+    DbSet<ArticleRejectionHistory> ArticleRejectionHistories { get; }
+
 
     /// <summary>
     /// User Table

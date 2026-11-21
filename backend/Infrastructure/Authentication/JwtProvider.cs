@@ -1,11 +1,10 @@
-﻿using Application.Interfaces.Services;
+﻿
+using Application.Interfaces.Services;
 using Domain.Entities;
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Application.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,27 +18,35 @@ public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     {
         var claims = new[]
         {
-            
+            // Идентификатор пользователя (стандартный JWT)
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+
+            // Идентификатор пользователя для ASP.NET Core
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+
+            // Email пользователя
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
 
-            // Naming:
-                // Default
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                // ASP
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            // Имя пользователя
+            new Claim("display_name", user.DisplayName),
 
-            new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("display_name", user.DisplayName)
+            // Роль пользователя
+            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
+
+        var creds = new SigningCredentials(
+            key,
+            SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _jwtOptions.Issuer,
             audience: _jwtOptions.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
+            expires: DateTime.UtcNow.AddMinutes(
+                _jwtOptions.AccessTokenExpirationMinutes),
             signingCredentials: creds
         );
 
@@ -49,8 +56,11 @@ public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     public string GenerateRefreshToken()
     {
         var randomNumber = new byte[32];
+
         using var rng = RandomNumberGenerator.Create();
+
         rng.GetBytes(randomNumber);
+
         return Convert.ToBase64String(randomNumber);
     }
 }

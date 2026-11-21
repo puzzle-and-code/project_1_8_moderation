@@ -71,6 +71,42 @@ namespace Infrastructure.Migrations
                     b.ToTable("articles", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.ArticleRejectionHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ArticleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("article_id");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ModeratorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("moderator_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_article_rejection_history");
+
+                    b.HasIndex("ArticleId")
+                        .HasDatabaseName("ix_article_rejection_history_article_id");
+
+                    b.HasIndex("ModeratorId")
+                        .HasDatabaseName("ix_article_rejection_history_moderator_id");
+
+                    b.ToTable("article_rejection_history", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -147,9 +183,14 @@ namespace Infrastructure.Migrations
                         .HasColumnName("password_hash")
                         .HasComment("Хеш, не пароль");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("integer")
-                        .HasColumnName("role");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("Journalist")
+                        .HasColumnName("role")
+                        .HasComment("Роль пользователя");
 
                     b.HasKey("Id")
                         .HasName("pk_users");
@@ -171,6 +212,23 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("fk_articles_users_author_id");
 
                     b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ArticleRejectionHistory", b =>
+                {
+                    b.HasOne("Domain.Entities.Article", null)
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_article_rejection_history_articles_article_id");
+
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("ModeratorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_article_rejection_history_users_moderator_id");
                 });
 
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>

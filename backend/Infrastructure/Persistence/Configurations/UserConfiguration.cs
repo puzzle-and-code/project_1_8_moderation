@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Domain.Entities;
+using Domain.Enums;
 
 namespace Infrastructure.Persistence.Configurations;
 
@@ -10,6 +12,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("users");
 
+<<<<<<< HEAD
+        // Первичный ключ
+=======
 
         // If UserRole needs save to string not int
         // Now it saving into int;
@@ -18,14 +23,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         //       .HasConversion<string>();
 
         // id | uuid | PK
+>>>>>>> 7158d40a8816a1df1f66a34e3046ba68040d7f05
         builder.HasKey(u => u.Id);
+
         builder.Property(u => u.Id)
-            //.HasColumnName("id")
             .HasColumnType("uuid");
 
-        // email | varchar(255) | UNIQUE, NOT NULL | Хранить в нижнем регистре
+
         builder.Property(u => u.Email)
-            //.HasColumnName("email")
             .HasMaxLength(255)
             .IsRequired()
             .HasComment("Храним в нижнем регистре");
@@ -33,24 +38,30 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email)
             .IsUnique();
 
-        // password_hash | varchar(255) | NOT NULL | Хеш, не пароль
+
         builder.Property(u => u.PasswordHash)
-            //.HasColumnName("password_hash")
             .HasMaxLength(255)
             .IsRequired()
             .HasComment("Хеш, не пароль");
 
-        // display_name | varchar(100) | NOT NULL | Имя для шапки
+ 
         builder.Property(u => u.DisplayName)
-            //.HasColumnName("display_name")
             .HasMaxLength(100)
             .IsRequired()
             .HasComment("Имя для шапки");
 
-        // created_at | timestamptz | NOT NULL
+
         builder.Property(u => u.CreatedAt)
-            //.HasColumnName("created_at")
             .HasColumnType("timestamptz")
             .IsRequired();
+
+  
+        builder.Property(u => u.Role)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .IsRequired()
+            .HasDefaultValue(UserRole.Journalist)
+            .HasSentinel(UserRole.Journalist)
+            .HasComment("Роль пользователя");
     }
 }
