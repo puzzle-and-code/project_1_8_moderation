@@ -1,7 +1,12 @@
 using Application.DependencyInjections;
 using Infrastructure.Authentication;
 using Infrastructure.DependencyInjections;
+<<<<<<< HEAD
 using Infrastructure.Persistence;
+=======
+using Infrastructure.Persistence; // Для AppDbContext при авто-миграции
+using Infrastructure.Persistence.Filters;
+>>>>>>> 7158d40a8816a1df1f66a34e3046ba68040d7f05
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,9 +17,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+<<<<<<< HEAD
 
 builder.Services.AddControllers();
 
+=======
+// 1. Подключаем контроллеры (DataAnnotations на DTO будут валидироваться автоматически)
+builder.Services.AddControllers();
+>>>>>>> 7158d40a8816a1df1f66a34e3046ba68040d7f05
 builder.Services.AddApplication();
 
 
@@ -27,11 +37,13 @@ var jwtOptions = builder.Configuration
     ?? throw new InvalidOperationException(
         "Секция JWT не найдена в конфигурации.");
 
+
 if (string.IsNullOrWhiteSpace(jwtOptions.SecretKey))
 {
     throw new InvalidOperationException(
         "JWT SecretKey не задан в конфигурации.");
 }
+
 
 builder.Services
     .AddAuthentication(options =>
@@ -64,6 +76,7 @@ builder.Services
         };
     });
 
+
 builder.Services.AddAuthorization();
 
 
@@ -87,6 +100,9 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Backend API на .NET 8"
     });
+
+
+    options.OperationFilter<SwaggerDefaultErrorFilter>();
 
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -124,19 +140,31 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
     using var scope = app.Services.CreateScope();
+<<<<<<< HEAD
 
     var dbContext = scope.ServiceProvider
         .GetRequiredService<AppDbContext>();
 
     await dbContext.Database.MigrateAsync();
+=======
+    var DateBaseContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DateBaseContext.Database.MigrateAsync();
+>>>>>>> 7158d40a8816a1df1f66a34e3046ba68040d7f05
 }
 
 app.UseHttpsRedirection();
 
 app.UseCors();
 
+<<<<<<< HEAD
 
+=======
+// Важен порядок: 
+// Сначала UseAuthentication (кто ты?),
+>>>>>>> 7158d40a8816a1df1f66a34e3046ba68040d7f05
 app.UseAuthentication();
+
+// Затем UseAuthorization (что тебе можно?)
 app.UseAuthorization();
 
 app.MapControllers();

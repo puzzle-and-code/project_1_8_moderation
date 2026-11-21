@@ -37,9 +37,7 @@ export const Header = () => {
     <StyledHeader>
       <Logo>Moderation App</Logo>
       <Nav>
-        <StyledLink href="/">Главная</StyledLink>
-        <StyledLink href="/login">Логин</StyledLink>
-        <StyledLink href="/forms">Список форм</StyledLink>
+        <StyledLink href="/login">Войти</StyledLink>
       </Nav>
     </StyledHeader>
   );

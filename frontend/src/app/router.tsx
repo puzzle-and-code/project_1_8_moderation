@@ -1,9 +1,10 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "@/layout/AppLayout";
-import HomePage from "@/pages/home/HomePage";
-import Authorisation from "@/pages/login/AuthorisationPage";
-import FormsPage from "@/pages/form/FormPage";
+import { RequireAuth } from "@/layout/AuthRouteGuard";
+import ArticlePage from "@/pages/articles/ArticlePage";
+import MyArticlesPage from "@/pages/articles/MyArticlesPage";
 import { NotFound } from "@/pages/error/NotFound";
+import { LoginRoute, RegisterRoute } from "@/app/AuthRoutes";
 
 export const router = createBrowserRouter([
   {
@@ -12,20 +13,33 @@ export const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
       {
-        index: true,
-        element: <HomePage />,
-      },
-      {
         path: "login",
-        element: (
-          <Authorisation
-            onSubmit={(mode, data) => console.log("Данные формы:", mode, data)}
-          />
-        ),
+        element: <LoginRoute />,
       },
       {
-        path: "forms",
-        element: <FormsPage />,
+        path: "register",
+        element: <RegisterRoute />,
+      },
+      {
+        path: "my-articles",
+        element: <Navigate to="/" replace />,
+      },
+      {
+        element: <RequireAuth />,
+        children: [
+          {
+            index: true,
+            element: <MyArticlesPage />,
+          },
+          {
+            path: "articles/new",
+            element: <ArticlePage />,
+          },
+          {
+            path: "articles/:id",
+            element: <ArticlePage />,
+          },
+        ],
       },
     ],
   },

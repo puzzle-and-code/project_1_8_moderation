@@ -18,8 +18,11 @@ public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     {
         var claims = new[]
         {
-            // Идентификатор пользователя
+            // Идентификатор пользователя (стандартный JWT)
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+
+            // Идентификатор пользователя для ASP.NET Core
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
 
             // Email пользователя
             new Claim(JwtRegisteredClaimNames.Email, user.Email),

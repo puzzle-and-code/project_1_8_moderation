@@ -8,13 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class ArticleService(IAppDbContext db) : IArticleService
+public class ArticleService(IAppDbContext _db) : IArticleService
 {
     public async Task<List<GetArticleDto>> GetMyArticlesAsync(
         Guid authorId,
         CancellationToken ct = default)
     {
-        var articles = await db.Articles
+        var articles = await _db.Articles
             .AsNoTracking()
             .Where(a => a.AuthorId == authorId)
             .OrderByDescending(a => a.UpdatedAt)
@@ -60,8 +60,8 @@ public class ArticleService(IAppDbContext db) : IArticleService
             UpdatedAt = now
         };
 
-        db.Articles.Add(article);
-        await db.SaveChangesAsync(ct);
+        _db.Articles.Add(article);
+        await _db.SaveChangesAsync(ct);
 
         return new GetArticleDto
         {

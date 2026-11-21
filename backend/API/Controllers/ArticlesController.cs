@@ -11,15 +11,15 @@ namespace API.Controllers;
 [ApiController]
 [Route("api/articles")]
 [Authorize]
-public class ArticlesController(IArticleService articleService) : ControllerBase
+public class ArticlesController(IArticleService _articleService) : ControllerBase
 {
     [HttpGet("mine")]
     public async Task<ActionResult<List<GetArticleDto>>> GetMine(
         CancellationToken ct)
     {
-        var userId = GetUserId();
+        var user_id = GetUserId();
 
-        if (userId is null)
+        if (user_id is null)
         {
             return Unauthorized(new
             {
@@ -27,8 +27,8 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
             });
         }
 
-        var articles = await articleService.GetMyArticlesAsync(
-            userId.Value,
+        var articles = await _articleService.GetMyArticlesAsync(
+            user_id.Value,
             ct);
 
         return Ok(articles);
@@ -39,9 +39,9 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
         [FromBody] CreateArticleDto request,
         CancellationToken ct)
     {
-        var userId = GetUserId();
+        var user_id = GetUserId();
 
-        if (userId is null)
+        if (user_id is null)
         {
             return Unauthorized(new
             {
@@ -51,8 +51,8 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
 
         try
         {
-            var article = await articleService.CreateArticleAsync(
-                userId.Value,
+            var article = await _articleService.CreateArticleAsync(
+                user_id.Value,
                 request,
                 ct);
 
@@ -69,9 +69,9 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
         Guid id,
         CancellationToken ct)
     {
-        var userId = GetUserId();
+        var user_id = GetUserId();
 
-        if (userId is null)
+        if (user_id is null)
         {
             return Unauthorized(new
             {
@@ -79,9 +79,9 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
             });
         }
 
-        var article = await articleService.GetArticleByIdAsync(
+        var article = await _articleService.GetArticleByIdAsync(
             id,
-            userId.Value,
+            user_id.Value,
             ct);
 
         if (article is null)
@@ -191,3 +191,4 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
         return Guid.TryParse(value, out var id) ? id : null;
     }
 }
+
