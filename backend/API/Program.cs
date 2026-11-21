@@ -1,42 +1,46 @@
-
 using Application.DependencyInjections;
 using Infrastructure.Authentication;
 using Infrastructure.DependencyInjections;
-using Infrastructure.Persistence; // Для AppDbContext при авто-миграции
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Подключаем контроллеры (DataAnnotations на DTO будут валидироваться автоматически)
-builder.Services.AddControllers();
 
+builder.Services.AddControllers();
 
 builder.Services.AddApplication();
 
-// 2. Подключаем слои Application и Infrastructure (EF Core + Npgsql + snake_case)
+
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// 3. Настраиваем авторизацию через JWT Bearer
+
 var jwtOptions = builder.Configuration
     .GetSection(JwtOptions.SectionName)
     .Get<JwtOptions>()
-    ?? throw new InvalidOperationException("Секция JWT не найдена в конфигурации.");
+    ?? throw new InvalidOperationException(
+        "Секция JWT не найдена в конфигурации.");
 
 if (string.IsNullOrWhiteSpace(jwtOptions.SecretKey))
 {
-    throw new InvalidOperationException("JWT SecretKey не задан в конфигурации.");
+    throw new InvalidOperationException(
+        "JWT SecretKey не задан в конфигурации.");
 }
 
 builder.Services
     .AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultAuthenticateScheme =
+            JwtBearerDefaults.AuthenticationScheme;
+
+        options.DefaultChallengeScheme =
+            JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
@@ -46,26 +50,35 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+
             ValidIssuer = jwtOptions.Issuer,
             ValidAudience = jwtOptions.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+
+            // Указываем, какой Claim отвечает за роль пользователя
+            RoleClaimType = ClaimTypes.Role,
+
             ClockSkew = TimeSpan.Zero
         };
     });
 
 builder.Services.AddAuthorization();
 
-// CORS:
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy
-        .WithOrigins("http://localhost:5173", "http://localhost:3000")
+        .WithOrigins(
+            "http://localhost:5173",
+            "http://localhost:3000")
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
 
-// 4. Настраиваем Swagger (Swashbuckle) + кнопку Authorize для JWT
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -75,7 +88,7 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Backend API на .NET 8"
     });
 
-    // Добавляем кнопку "Authorize" (замочек) в Swagger для ввода JWT-токена
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -104,14 +117,17 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// 5. Dev-окружение: включаем Swagger и автоматически применяем миграции БД при старте
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 
     using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<AppDbContext>();
+
     await dbContext.Database.MigrateAsync();
 }
 
@@ -119,7 +135,7 @@ app.UseHttpsRedirection();
 
 app.UseCors();
 
-// Важен порядок: сначала UseAuthentication (кто ты?), затем UseAuthorization (что тебе можно?)
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -1,4 +1,3 @@
-
 using System.Text.Json;
 using Application.DTOs.articles;
 using Application.Interfaces;
@@ -44,18 +43,7 @@ public class ArticleService(IAppDbContext db) : IArticleService
         CreateArticleDto request,
         CancellationToken ct = default)
     {
-        if (!string.IsNullOrWhiteSpace(request.ExtraData))
-        {
-            try
-            {
-                using var _ = JsonDocument.Parse(request.ExtraData);
-            }
-            catch (JsonException)
-            {
-                throw new ArgumentException(
-                    "Поле extraData должно содержать корректный JSON.");
-            }
-        }
+        ValidateExtraData(request.ExtraData);
 
         var now = DateTime.UtcNow;
 
@@ -116,5 +104,116 @@ public class ArticleService(IAppDbContext db) : IArticleService
                 Content = a.Content
             })
             .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<bool> RejectArticleAsync(
+        Guid articleId,
+        Guid moderatorId,
+        string comment,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            throw new ArgumentException("Комментарий обязателен.");
+        }
+
+        comment = comment.Trim();
+
+        if (comment.Length > 2000)
+        {
+            throw new ArgumentException(
+                "Комментарий не может быть длиннее 2000 символов.");
+        }
+
+        var article = await db.Articles
+            .FirstOrDefaultAsync(a => a.Id == articleId, ct);
+
+        if (article == null)
+        {
+            return false;
+        }
+
+        if (article.Status != ArticleStatus.OnModeration)
+        {
+            throw new InvalidOperationException(
+                "Отклонить можно только статью со статусом OnModeration.");
+        }
+
+        article.Status = ArticleStatus.Rejected;
+        article.UpdatedAt = DateTime.UtcNow;
+
+        var history = new ArticleRejectionHistory(
+            articleId,
+            moderatorId,
+            comment);
+
+        db.ArticleRejectionHistories.Add(history);
+
+        await db.SaveChangesAsync(ct);
+
+        return true;
+    }
+
+    public async Task<bool> UpdateArticleAsync(
+        Guid articleId,
+        Guid authorId,
+        UpdateArticleDto request,
+        CancellationToken ct = default)
+    {
+        ValidateExtraData(request.ExtraData);
+
+
+        var article = await db.Articles
+            .FirstOrDefaultAsync(
+                a => a.Id == articleId && a.AuthorId == authorId,
+                ct);
+
+        if (article == null)
+        {
+            return false;
+        }
+
+
+        if (article.Status != ArticleStatus.Draft &&
+            article.Status != ArticleStatus.Rejected)
+        {
+            throw new InvalidOperationException(
+                "Редактировать можно только черновик или отклонённую статью.");
+        }
+
+  
+        article.Title = request.Title.Trim();
+        article.Content = request.Content;
+        article.ExtraData = string.IsNullOrWhiteSpace(request.ExtraData)
+            ? null
+            : request.ExtraData;
+
+  
+        article.Status = ArticleStatus.Draft;
+
+        article.UpdatedAt = DateTime.UtcNow;
+
+        await db.SaveChangesAsync(ct);
+
+        return true;
+    }
+
+
+    private static void ValidateExtraData(string? extraData)
+    {
+        if (string.IsNullOrWhiteSpace(extraData))
+        {
+            return;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(extraData);
+        }
+        catch (JsonException)
+        {
+            throw new ArgumentException(
+                "Поле extraData должно содержать корректный JSON.");
+        }
     }
 }

@@ -5,9 +5,14 @@ namespace Application.Interfaces.Services;
 
 public interface IArticleService
 {
-    Task<List<GetArticleDto>> GetMyArticlesAsync(Guid authorId, CancellationToken ct = default);
+    Task<List<GetArticleDto>> GetMyArticlesAsync(
+        Guid authorId,
+        CancellationToken ct = default);
 
-    Task<GetArticleDto> CreateArticleAsync(Guid authorId, CreateArticleDto request, CancellationToken ct = default);
+    Task<GetArticleDto> CreateArticleAsync(
+        Guid authorId,
+        CreateArticleDto request,
+        CancellationToken ct = default);
 
     Task<GetArticleDetailsDto?> GetArticleByIdAsync(
         Guid articleId,
@@ -16,5 +21,17 @@ public interface IArticleService
 
     Task<GetExternalArticleDto?> GetExternalArticleByIdAsync(
         Guid articleId,
+        CancellationToken ct = default);
+
+    Task<bool> RejectArticleAsync(
+        Guid articleId,
+        Guid moderatorId,
+        string comment,
+        CancellationToken ct = default);
+
+    Task<bool> UpdateArticleAsync(
+        Guid articleId,
+        Guid authorId,
+        UpdateArticleDto request,
         CancellationToken ct = default);
 }
